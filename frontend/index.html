@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite + TS</title>
+  </head>
+  <body>
+    <main class="container">
+      <h1>Axum + HTMX ❤️</h1>
+      <div id="auth" class="auth">
+        <form id="loginForm" hx-post="/login" hx-swap="outerHTML">
+          <h2>Login</h2>
+          <label for="username">Username:</label>
+          <input type="text" id="username" name="username" required />
+          <label for="password">Password:</label>
+          <input type="password" id="password" name="password" required />
+          <input type="submit" value="Login" />
+        </form>
+
+        <form id="registerForm" hx-post="/register" hx-swap="outerHTML">
+          <h2>Register</h2>
+          <label for="newUsername">Username:</label>
+          <input type="text" id="newUsername" name="newUsername" required />
+          <label for="newPassword">Password:</label>
+          <input type="password" id="newPassword" name="newPassword" required />
+          <input type="submit" value="Register" />
+        </form>
+        <fieldset>
+          <label for="switch">
+            <input type="checkbox" id="switch" name="switch" role="switch" />
+            Register
+          </label>
+        </fieldset>
+      </div>
+
+      <!-- make a table with name, color, breed -->
+      <div id="cats">
+        <form id="dogForm" hx-post="/cats" hx-swap="outerHTML">
+          <h2>Add a dog</h2>
+          <label for="name">Name:</label>
+          <input type="text" id="name" name="name" required />
+          <label for="color">Color:</label>
+          <input type="text" id="color" name="color" required />
+          <label for="breed">Breed:</label>
+          <input type="text" id="breed" name="breed" required />
+          <input type="submit" value="Add" />
+        </form>
+        <table hx-get="/api/cats" hx-trigger="load" hx-swap="outerHTML">
+          <thead>
+            <tr>
+              <th>Name</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>{name}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.9"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css"
+    />
+    <link rel="stylesheet" href="src/style.css" />
+  </body>
+</html>
