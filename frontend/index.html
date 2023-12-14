@@ -19,12 +19,12 @@
           <input type="submit" value="Login" />
         </form>
 
-        <form id="registerForm" hx-post="/register" hx-swap="outerHTML">
+        <form id="registerForm" hx-post="api/signup" hx-swap="outerHTML">
           <h2>Register</h2>
-          <label for="newUsername">Username:</label>
-          <input type="text" id="newUsername" name="newUsername" required />
-          <label for="newPassword">Password:</label>
-          <input type="password" id="newPassword" name="newPassword" required />
+          <label for="username">Username:</label>
+          <input type="text" id="username" name="username" required />
+          <label for="password">Password:</label>
+          <input type="password" name="password" required />
           <input type="submit" value="Register" />
         </form>
         <fieldset>
@@ -47,6 +47,7 @@
           <input type="text" id="breed" name="breed" required />
           <input type="submit" value="Add" />
         </form>
+
         <table hx-get="/api/cats" hx-trigger="load" hx-swap="outerHTML">
           <thead>
             <tr>
