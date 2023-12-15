@@ -1,6 +1,7 @@
 mod errors;
 mod handlers;
 mod user;
+mod utils;
 
 use anyhow::Result;
 use axum::{

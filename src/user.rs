@@ -10,9 +10,9 @@ pub struct User {
     pub password: String,
 }
 
-pub fn encrypt_password(password: String) -> String {
+pub fn encrypt_password(password: String) -> (String, String) {
     let salt = SaltString::generate(&mut OsRng);
-    let argon2 = Argon2::default();
+    let argon2: Argon2<'_> = Argon2::default();
 
     let password_hash = argon2
         .hash_password(password.as_bytes(), &salt)
@@ -25,6 +25,5 @@ pub fn encrypt_password(password: String) -> String {
         .unwrap()
         .to_string();
 
-    println!("Password: {}", encrypt_password);
-    encrypt_password
+    (encrypt_password, salt.to_string())
 }

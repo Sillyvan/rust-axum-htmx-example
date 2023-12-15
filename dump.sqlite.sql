@@ -1,11 +1,15 @@
--- TABLE
-CREATE TABLE owner (
+PRAGMA journal_mode=WAL
+
+-- Create the 'owner' table if not exists
+CREATE TABLE IF NOT EXISTS owner (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT,
-    password TEXT
-); 
+    password TEXT,
+    salt TEXT
+);
 
-CREATE TABLE cat (
+-- Create the 'cat' table if not exists
+CREATE TABLE IF NOT EXISTS cat (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT,
     breed TEXT,
@@ -13,15 +17,14 @@ CREATE TABLE cat (
     FOREIGN KEY (owner_id) REFERENCES owner(id)
 );
 
--- INDEX
-CREATE INDEX idx_cat_owner_id ON cat (owner_id);
- 
--- Insert data into the 'owner' table
-INSERT INTO owner (username, password) VALUES
-    ('Silvan', 'password123'),
+-- Create the 'idx_cat_owner_id' index if not exists
+CREATE INDEX IF NOT EXISTS idx_cat_owner_id ON cat (owner_id);
 
+-- Insert data into the 'owner' table
+INSERT INTO owner (username, password, salt) VALUES
+    ('Silvan', 'password123', 'mysalt');
 
 -- Insert data into the 'cat' table
 INSERT INTO cat (name, breed, owner_id) VALUES
     ('Garfield', 'Siamese', 1),
-    ('Tiger', 'Persian', 1),
+    ('Tiger', 'Persian', 1);
