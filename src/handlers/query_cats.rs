@@ -1,15 +1,14 @@
 use axum::{response::Html, Extension};
 use libsql::{de, Connection};
-use minify_html::{minify, Cfg};
 
-use crate::errors::AppError;
+use crate::{errors::AppError, utils::minify::minify_response};
 
 #[derive(Debug, serde::Deserialize)]
 struct Cat {
     id: i32,
     name: String,
     breed: String,
-    owner: String,
+    owner_name: String,
 }
 
 pub async fn query_cats(Extension(conn): Extension<Connection>) -> Result<Html<String>, AppError> {
@@ -19,7 +18,7 @@ pub async fn query_cats(Extension(conn): Extension<Connection>) -> Result<Html<S
                   cat.id,
                   cat.name,
                   cat.breed,
-                  owner.username AS owner
+                  owner.username AS owner_name
                 FROM 
                   cat
                 JOIN 
@@ -29,8 +28,6 @@ pub async fn query_cats(Extension(conn): Extension<Connection>) -> Result<Html<S
         .await?;
 
     let mut table: String = String::new();
-
-    let row = rows.next().unwrap().unwrap();
 
     while let Some(current_row) = rows.next()? {
         let cat: Cat = de::from_row::<Cat>(&current_row)?;
@@ -43,14 +40,10 @@ pub async fn query_cats(Extension(conn): Extension<Connection>) -> Result<Html<S
             <td>{}</td>
           </tr>
           "#,
-            cat.id, cat.name, cat.breed, cat.owner
+            cat.id, cat.name, cat.breed, cat.owner_name
         );
-        println!("row loop: {:?}", row);
     }
 
-    let idk = row.column_name(1);
-
-    println!("idk: {:?}", idk);
     let response = format!(
         r#"
     <table>
@@ -69,7 +62,5 @@ pub async fn query_cats(Extension(conn): Extension<Connection>) -> Result<Html<S
         table
     );
 
-    let minified_reponse = String::from_utf8(minify(&response.as_bytes(), &Cfg::new()))?;
-
-    Ok(Html(minified_reponse))
+    Ok(Html(minify_response(response)))
 }

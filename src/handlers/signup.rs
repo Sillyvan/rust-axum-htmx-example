@@ -2,7 +2,7 @@ use axum::{response::Html, Extension, Form};
 use libsql::Connection;
 use serde::Deserialize;
 
-use crate::{errors::AppError, user::encrypt_password};
+use crate::{errors::AppError, user::encrypt_password, utils::minify::minify_response};
 
 #[derive(Deserialize, Debug)]
 pub struct SignUp {
@@ -14,30 +14,22 @@ pub async fn sign_up(
     Extension(conn): Extension<Connection>,
     Form(sign_up): Form<SignUp>,
 ) -> Result<Html<String>, AppError> {
-    println!("Username: {}", sign_up.username);
-    println!("Password: {}", sign_up.password);
+    let (password, salt) = encrypt_password(sign_up.password);
 
-    let password = encrypt_password(sign_up.password);
+    let params = [sign_up.username.clone(), password, salt];
 
-    let mut rows = conn
-        .query(
-            "SELECT 
-    cat.id,
-    cat.name AS cat_name,
-    cat.breed,
-    owner.username AS owner_name
-FROM 
-    cat
-JOIN 
-    owner ON cat.owner_id = owner.id;",
-            (),
-        )
-        .await?;
+    conn.execute(
+        "INSERT INTO owner (username, password, salt) VALUES (?1, ?2, ?3)",
+        &params,
+    )
+    .await?;
 
-    // Return a response
-    Ok(Html(format!(
+    let response = format!(
         r#"
-        <h1>Sign Uped</h1>
-        "#
-    )))
+        <h1>Welcome {}</h1>
+        "#,
+        sign_up.username
+    );
+
+    Ok(Html(minify_response(response)))
 }
