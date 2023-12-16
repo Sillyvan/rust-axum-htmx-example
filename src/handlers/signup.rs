@@ -1,18 +1,15 @@
 use axum::{response::Html, Extension, Form};
 use libsql::Connection;
-use serde::Deserialize;
 
-use crate::{errors::AppError, user::encrypt_password, utils::minify::minify_response};
-
-#[derive(Deserialize, Debug)]
-pub struct SignUp {
-    username: String,
-    password: String,
-}
+use crate::{
+    errors::AppError,
+    user::{encrypt_password, User},
+    utils::minify::minify_response,
+};
 
 pub async fn sign_up(
     Extension(conn): Extension<Connection>,
-    Form(sign_up): Form<SignUp>,
+    Form(sign_up): Form<User>,
 ) -> Result<Html<String>, AppError> {
     let (password, salt) = encrypt_password(sign_up.password);
 

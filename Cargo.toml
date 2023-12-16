@@ -9,6 +9,7 @@ edition = "2021"
 anyhow = "1.0.75"
 argon2 = "0.5.2"
 axum = "0.7.2"
+jsonwebtoken = "9.2.0"
 libsql = { git = "https://github.com/tursodatabase/libsql.git" }
 minify-html = "0.11.1"
 serde = "1.0.193"
