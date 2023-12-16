@@ -10,7 +10,7 @@
     <main class="container">
       <h1>Axum + HTMX ❤️</h1>
       <div id="auth" class="auth">
-        <form id="loginForm" hx-post="/login" hx-swap="outerHTML">
+        <form id="loginForm" hx-post="api/signin" hx-swap="innerHTML">
           <h2>Login</h2>
           <label for="username">Username:</label>
           <input type="text" id="username" name="username" required />

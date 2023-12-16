@@ -1,9 +1,8 @@
-PRAGMA journal_mode=WAL
 
 -- Create the 'owner' table if not exists
 CREATE TABLE IF NOT EXISTS owner (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT,
+    username TEXT UNIQUE,
     password TEXT,
     salt TEXT
 );
@@ -20,11 +19,9 @@ CREATE TABLE IF NOT EXISTS cat (
 -- Create the 'idx_cat_owner_id' index if not exists
 CREATE INDEX IF NOT EXISTS idx_cat_owner_id ON cat (owner_id);
 
--- Insert data into the 'owner' table
-INSERT INTO owner (username, password, salt) VALUES
-    ('Silvan', 'password123', 'mysalt');
 
 -- Insert data into the 'cat' table
 INSERT INTO cat (name, breed, owner_id) VALUES
     ('Garfield', 'Siamese', 1),
-    ('Tiger', 'Persian', 1);
+    ('Tiger', 'Persian', 1),
+    ('Meow', 'Cat', 2);

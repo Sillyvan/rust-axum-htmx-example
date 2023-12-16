@@ -9,7 +9,7 @@ use axum::{
     Extension, Router,
 };
 use errors::AppError;
-use handlers::{query_cats::query_cats, signup::sign_up};
+use handlers::{query_cats::query_cats, signin::sign_in, signup::sign_up};
 use libsql::Database;
 
 #[tokio::main]
@@ -20,6 +20,7 @@ async fn main() -> Result<(), AppError> {
     let app = Router::new()
         .route("/api/cats", get(query_cats))
         .route("/api/signup", post(sign_up))
+        .route("/api/signin", post(sign_in))
         .layer(Extension(conn));
 
     let listener: tokio::net::TcpListener = tokio::net::TcpListener::bind("0.0.0.0:3000").await?;
