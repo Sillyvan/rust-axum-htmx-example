@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="htmx-config" content='{"globalViewTransitions ":true}' />
+    <title>Vite + TS</title>
+  </head>
+  <body>
+    <header class="container" hx-boost="true">
+      <nav>
+        <ul>
+          <li><span>Axum + HTMX ❤️</span></li>
+        </ul>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/signin">Sign In</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main class="container">
+      <div id="auth" class="auth">
+        <form id="registerForm" hx-post="api/signup" hx-swap="outerHTML">
+          <h2>Sign Up</h2>
+          <label for="username">Username:</label>
+          <input type="text" id="username" name="username" autofocus required />
+          <label for="password">Password:</label>
+          <input type="password" name="password" required />
+          <input type="submit" value="Register" />
+        </form>
+      </div>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.9"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css"
+    />
+    <link rel="stylesheet" href="src/style.css" />
+  </body>
+</html>
