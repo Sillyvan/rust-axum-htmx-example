@@ -32,7 +32,9 @@ impl Hash for OwnerFormData {
 const INSERT_OWNER: &str =
     "INSERT INTO owner (username, password, salt) VALUES (lower(?1), ?2, ?3)";
 
-const REDIRECT_PATH: &str = "/signin";
+const HX_REDIRECT: &str = "HX-Redirect";
+const HX_REDIRECT_VALUE: HeaderValue = HeaderValue::from_static("/signin");
+const USERNAME_TAKEN: &str = "Username already taken";
 
 pub async fn sign_up(
     Extension(conn): Extension<Connection>,
@@ -42,11 +44,14 @@ pub async fn sign_up(
 
     let mut stmt = conn.prepare(INSERT_OWNER).await?;
 
-    stmt.execute(&[username, password, salt]).await?;
+    let result = stmt.execute(&[username, password, salt]).await;
 
-    let mut res = Response::new(Body::empty());
-    res.headers_mut()
-        .insert("Hx-Redirect", HeaderValue::from_static(REDIRECT_PATH));
-
-    Ok(res)
+    match result {
+        Ok(_) => {
+            let mut res = Response::new(Body::empty());
+            res.headers_mut().insert(HX_REDIRECT, HX_REDIRECT_VALUE);
+            return Ok(res);
+        }
+        Err(_) => return Ok(Response::new(Body::from(USERNAME_TAKEN))),
+    }
 }
