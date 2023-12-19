@@ -7,17 +7,9 @@ use axum::{
 use jsonwebtoken::{decode, DecodingKey, Validation};
 use libsql::{de, Connection};
 
-use crate::{errors::AppError, utils::validate_token::validate_token};
+use crate::{errors::AppError, model::Cat::Cat, utils::validate_token::validate_token};
 
 use super::signin::Claims;
-
-#[derive(Debug, serde::Deserialize)]
-struct Cat {
-    id: i32,
-    name: String,
-    breed: String,
-    owner_name: String,
-}
 
 pub async fn query_cats(
     headers: HeaderMap,
@@ -68,7 +60,7 @@ pub async fn query_cats(
 
 #[derive(Debug, serde::Deserialize)]
 pub struct IdkMan {
-    id: i32,
+    id: i64,
 }
 
 pub async fn query_cats_delete(
