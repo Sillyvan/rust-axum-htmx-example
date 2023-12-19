@@ -6,15 +6,9 @@ use axum::{
 use jsonwebtoken::{decode, DecodingKey, Validation};
 use libsql::Connection;
 
-use crate::errors::AppError;
+use crate::{errors::AppError, model::Cat::CatFormData};
 
 use super::signin::Claims;
-
-#[derive(Debug, serde::Deserialize)]
-pub struct CatForm {
-    pub name: String,
-    pub breed: String,
-}
 
 pub async fn query_cats_form_get(headers: HeaderMap) -> Result<Response<Body>, AppError> {
     let token: Option<&axum::http::HeaderValue> = headers.get("Cookie");
@@ -39,7 +33,7 @@ pub async fn query_cats_form_get(headers: HeaderMap) -> Result<Response<Body>, A
 pub async fn query_cats_form_post(
     headers: HeaderMap,
     Extension(conn): Extension<Connection>,
-    Form(form): Form<CatForm>,
+    Form(form): Form<CatFormData>,
 ) -> Result<Response<Body>, AppError> {
     let token: Option<&axum::http::HeaderValue> = headers.get("Cookie");
 

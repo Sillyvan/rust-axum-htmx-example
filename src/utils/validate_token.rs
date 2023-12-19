@@ -1,7 +1,7 @@
 use axum::http::HeaderValue;
 use jsonwebtoken::{decode, errors::ErrorKind, DecodingKey, Validation};
 
-use crate::handlers::signin::Claims;
+use crate::handler::signin::Claims;
 
 pub fn validate_token(token: Option<&HeaderValue>) -> bool {
     let validation = Validation::default();

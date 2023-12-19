@@ -12,7 +12,6 @@
       class="container"
       hx-get="/api/nav"
       hx-trigger="load"
-      hx-swap="innerHTML"
       hx-boost="true"
     >
       <nav>
@@ -30,7 +29,6 @@
       <table
         hx-get="/api/cats"
         hx-trigger="load, update-cats from:body"
-        hx-swap="innerHTML"
       ></table>
     </main>
     <script src="https://unpkg.com/htmx.org@1.9.9"></script>

@@ -1,18 +1,18 @@
 mod errors;
-mod handlers;
-mod user;
+mod handler;
+mod model;
 mod utils;
 
 use anyhow::Result;
 use axum::{
-    routing::{delete, get, post},
+    routing::{get, post},
     Extension, Router,
 };
 use errors::AppError;
-use handlers::{
+use handler::{
     nav::nav,
     query_cats::{query_cats, query_cats_delete},
-    query_cats_form::{self, query_cats_form_get, query_cats_form_post},
+    query_cats_form::{query_cats_form_get, query_cats_form_post},
     signin::sign_in,
     signout::sign_out,
     signup::sign_up,
