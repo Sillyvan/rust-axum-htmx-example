@@ -1,2 +1,2 @@
-pub mod Cat;
-pub mod Owner;
+pub mod cat;
+pub mod owner;

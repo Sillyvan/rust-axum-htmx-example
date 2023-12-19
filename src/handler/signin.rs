@@ -10,7 +10,7 @@ use jsonwebtoken::{encode, EncodingKey, Header};
 use libsql::Connection;
 
 use crate::errors::AppError;
-use crate::model::Owner::OwnerFormData;
+use crate::model::owner::OwnerFormData;
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct Claims {

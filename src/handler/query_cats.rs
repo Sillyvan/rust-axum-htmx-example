@@ -4,117 +4,81 @@ use axum::{
     response::IntoResponse,
     Extension, Form,
 };
-use jsonwebtoken::{decode, DecodingKey, Validation};
 use libsql::{de, Connection};
 
-use crate::{errors::AppError, model::Cat::Cat, utils::validate_token::validate_token};
-
-use super::signin::Claims;
+use crate::{
+    errors::AppError,
+    model::cat::{Cat, CatDeleteFormData},
+    utils::validate_token::validate_token,
+};
 
 pub async fn query_cats(
     headers: HeaderMap,
     Extension(conn): Extension<Connection>,
 ) -> Result<Response<Body>, AppError> {
-    let token: Option<&axum::http::HeaderValue> = headers.get("Cookie");
+    let cookie_header: Option<&axum::http::HeaderValue> = headers.get("Cookie");
+    let token = validate_token(cookie_header);
 
     let mut rows = conn
         .query(
             "SELECT 
-                  cat.id,
-                  cat.name,
-                  cat.breed,
-                  owner.username AS owner_name
-                FROM 
-                  cat
-                JOIN 
-                  owner ON cat.owner_id = owner.id;",
+              cat.id,
+              cat.name,
+              cat.breed,
+              owner.username AS owner_name
+            FROM 
+              cat
+            JOIN 
+              owner ON cat.owner_id = owner.id;",
             (),
         )
         .await?;
 
-    let jwt = match token {
-        Some(t) => Some(t.to_str().unwrap().split("=").collect::<Vec<&str>>()[1]),
-        None => None,
-    };
-
-    let username = match jwt {
-        Some(t) => Some(
-            decode::<Claims>(
-                t,
-                &DecodingKey::from_secret("secret".as_ref()),
-                &Validation::default(),
-            )
-            .unwrap()
-            .claims
-            .sub,
-        ),
-        None => None,
-    };
-
-    let response = generate_table(&mut rows, validate_token(token), username)
+    let res = generate_table(&mut rows, token.map(|t| t.claims.sub))
         .await?
         .into_response();
 
-    Ok(response)
-}
-
-#[derive(Debug, serde::Deserialize)]
-pub struct IdkMan {
-    id: i64,
+    Ok(res)
 }
 
 pub async fn query_cats_delete(
     headers: HeaderMap,
     Extension(conn): Extension<Connection>,
-    Form(id): Form<IdkMan>,
+    Form(cat): Form<CatDeleteFormData>,
 ) -> Result<Response<Body>, AppError> {
-    let token: Option<&axum::http::HeaderValue> = headers.get("Cookie");
+    let cookie_header: Option<&axum::http::HeaderValue> = headers.get("Cookie");
+    let token = validate_token(cookie_header);
 
-    let jwt = match token {
-        Some(t) => Some(t.to_str().unwrap().split("=").collect::<Vec<&str>>()[1]),
-        None => None,
-    };
-
-    let owner_id = match jwt {
-        Some(t) => Some(
-            decode::<Claims>(
-                t,
-                &DecodingKey::from_secret("secret".as_ref()),
-                &Validation::default(),
+    match token {
+        Some(t) => {
+            conn.execute(
+                "DELETE FROM cat WHERE id = $1 AND owner_id = $2;",
+                &[cat.id.to_string(), t.claims.id],
             )
-            .unwrap()
-            .claims
-            .id,
-        ),
+            .await?;
+
+            let mut res = Response::new(Body::empty());
+            res.headers_mut()
+                .insert("HX-Trigger", HeaderValue::from_static("update-cats"));
+
+            Ok(res)
+        }
         None => return Ok(Response::new(Body::empty())),
-    };
-
-    conn.execute(
-        "DELETE FROM cat WHERE id = $1 AND owner_id = $2;",
-        &[id.id.to_string(), owner_id.unwrap()],
-    )
-    .await?;
-
-    let mut res = Response::new(Body::empty());
-    res.headers_mut()
-        .insert("HX-Trigger", HeaderValue::from_static("update-cats"));
-
-    Ok(res)
+    }
 }
 
 async fn generate_table(
     rows: &mut libsql::Rows,
-    is_token_valid: bool,
     username: Option<String>,
 ) -> Result<String, AppError> {
     let mut table_rows: Vec<String> = Vec::new();
 
-    match username {
+    match username.clone() {
         Some(u) => {
             while let Some(current_row) = rows.next()? {
                 let cat: Cat = de::from_row::<Cat>(&current_row)?;
 
-                let row: String = if is_token_valid && cat.owner_name == u {
+                let row: String = if cat.owner_name == u {
                     format!(
                         r#"
             <tr key='{}'>
@@ -161,7 +125,7 @@ async fn generate_table(
         }
     }
 
-    let table = if is_token_valid {
+    let table = if username.is_some() {
         format!(
             r#"
             <thead>

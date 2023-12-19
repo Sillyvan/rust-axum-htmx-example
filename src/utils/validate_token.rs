@@ -1,32 +1,24 @@
 use axum::http::HeaderValue;
-use jsonwebtoken::{decode, errors::ErrorKind, DecodingKey, Validation};
+use jsonwebtoken::{decode, DecodingKey, TokenData, Validation};
 
 use crate::handler::signin::Claims;
 
-pub fn validate_token(token: Option<&HeaderValue>) -> bool {
+pub fn validate_token(cookie_header: Option<&HeaderValue>) -> Option<TokenData<Claims>> {
     let validation = Validation::default();
 
-    let binding = match token {
-        Some(token) => match token.to_str() {
-            Ok(token_str) => token_str.split("=").collect::<Vec<&str>>(),
-            Err(_) => return false,
-        },
-        None => return false,
+    let header = match cookie_header {
+        Some(t) => t,
+        None => return None,
     };
-    let jwt = match binding.get(1) {
-        Some(jwt) => jwt,
-        None => return false,
-    };
+
+    let jwt = header.to_str().unwrap().split("=").collect::<Vec<&str>>()[1];
 
     match decode::<Claims>(
         jwt,
         &DecodingKey::from_secret("secret".as_ref()),
         &validation,
     ) {
-        Ok(_) => true,
-        Err(err) => match *err.kind() {
-            ErrorKind::InvalidToken => false,
-            _ => false,
-        },
+        Ok(t) => Some(t),
+        Err(_) => None,
     }
 }

@@ -11,3 +11,8 @@ pub struct CatFormData {
     pub name: String,
     pub breed: String,
 }
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+pub struct CatDeleteFormData {
+    pub id: i64,
+}
