@@ -1,11 +1,13 @@
-use axum::{http::HeaderMap, response::Html, Extension};
+use axum::{
+    body::Body,
+    http::{HeaderMap, HeaderValue, Response},
+    response::IntoResponse,
+    Extension, Form,
+};
 use jsonwebtoken::{decode, DecodingKey, Validation};
 use libsql::{de, Connection};
 
-use crate::{
-    errors::AppError,
-    utils::{minify::minify_response, validate_token::validate_token},
-};
+use crate::{errors::AppError, utils::validate_token::validate_token};
 
 use super::signin::Claims;
 
@@ -20,7 +22,7 @@ struct Cat {
 pub async fn query_cats(
     headers: HeaderMap,
     Extension(conn): Extension<Connection>,
-) -> Result<Html<String>, AppError> {
+) -> Result<Response<Body>, AppError> {
     let token: Option<&axum::http::HeaderValue> = headers.get("Cookie");
 
     let mut rows = conn
@@ -57,11 +59,55 @@ pub async fn query_cats(
         None => None,
     };
 
-    println!("username: {:?}", username);
+    let response = generate_table(&mut rows, validate_token(token), username)
+        .await?
+        .into_response();
 
-    let table = generate_table(&mut rows, validate_token(token), username).await?;
+    Ok(response)
+}
 
-    Ok(Html(minify_response(table)))
+#[derive(Debug, serde::Deserialize)]
+pub struct IdkMan {
+    id: i32,
+}
+
+pub async fn query_cats_delete(
+    headers: HeaderMap,
+    Extension(conn): Extension<Connection>,
+    Form(id): Form<IdkMan>,
+) -> Result<Response<Body>, AppError> {
+    let token: Option<&axum::http::HeaderValue> = headers.get("Cookie");
+
+    let jwt = match token {
+        Some(t) => Some(t.to_str().unwrap().split("=").collect::<Vec<&str>>()[1]),
+        None => None,
+    };
+
+    let owner_id = match jwt {
+        Some(t) => Some(
+            decode::<Claims>(
+                t,
+                &DecodingKey::from_secret("secret".as_ref()),
+                &Validation::default(),
+            )
+            .unwrap()
+            .claims
+            .id,
+        ),
+        None => return Ok(Response::new(Body::empty())),
+    };
+
+    conn.execute(
+        "DELETE FROM cat WHERE id = $1 AND owner_id = $2;",
+        &[id.id.to_string(), owner_id.unwrap()],
+    )
+    .await?;
+
+    let mut res = Response::new(Body::empty());
+    res.headers_mut()
+        .insert("HX-Trigger", HeaderValue::from_static("update-cats"));
+
+    Ok(res)
 }
 
 async fn generate_table(
@@ -75,17 +121,18 @@ async fn generate_table(
         Some(u) => {
             while let Some(current_row) = rows.next()? {
                 let cat: Cat = de::from_row::<Cat>(&current_row)?;
+
                 let row: String = if is_token_valid && cat.owner_name == u {
                     format!(
                         r#"
-            <tr key='{}'>s
+            <tr key='{}'>
               <td>{}</td>
               <td>{}</td>
-              <td>{}</td>
-              <td><a role='button' style='background-color: red' href='#'>x</a></td>
+              <td>{}</td> 
+              <td><a role='button' href='/' hx-delete='/api/cats' hx-vals='{{"id": {}}}'>x</a></td>
             </tr>
             "#,
-                        cat.id, cat.name, cat.breed, cat.owner_name
+                        cat.id, cat.name, cat.breed, cat.owner_name, cat.id
                     )
                 } else {
                     format!(
@@ -125,7 +172,6 @@ async fn generate_table(
     let table = if is_token_valid {
         format!(
             r#"
-          <table>
             <thead>
               <tr>
                 <th>Name</th>
@@ -137,14 +183,12 @@ async fn generate_table(
             <tbody>
               {}
             </tbody>
-          </table>
           "#,
             table_rows.join("\n")
         )
     } else {
         format!(
             r#"
-          <table>
             <thead>
               <tr>
                 <th>Name</th>
@@ -155,7 +199,7 @@ async fn generate_table(
             <tbody>
               {}
             </tbody>
-          </table>
+          </>
           "#,
             table_rows.join("\n")
         )

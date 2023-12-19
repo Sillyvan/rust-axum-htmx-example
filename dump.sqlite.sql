@@ -19,9 +19,14 @@ CREATE TABLE IF NOT EXISTS cat (
 -- Create the 'idx_cat_owner_id' index if not exists
 CREATE INDEX IF NOT EXISTS idx_cat_owner_id ON cat (owner_id);
 
+-- insert fake user
+INSERT INTO owner (username, password, salt) VALUES ('admin', 'admin', 'admin');
 
 -- Insert data into the 'cat' table
 INSERT INTO cat (name, breed, owner_id) VALUES
     ('Garfield', 'Siamese', 1),
     ('Tiger', 'Persian', 1),
+    ('Tiger', 'Persian', 1),
+    ('Tiger3', 'Persian', 1),
+    ('Tiger4', 'Persian', 1),
     ('Meow', 'Cat', 2);

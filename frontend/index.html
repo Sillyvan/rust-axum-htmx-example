@@ -5,64 +5,34 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vite + TS</title>
+    <script type="module" src="src/main.ts"></script>
   </head>
   <body>
+    <header
+      class="container"
+      hx-get="/api/nav"
+      hx-trigger="load"
+      hx-swap="innerHTML"
+      hx-boost="true"
+    >
+      <nav>
+        <ul>
+          <li><span>Axum + HTMX ❤️</span></li>
+        </ul>
+      </nav>
+    </header>
+
     <main class="container">
-      <h1>Axum + HTMX ❤️</h1>
-      <div id="auth" class="auth">
-        <form id="loginForm" hx-post="api/signin" hx-swap="innerHTML">
-          <h2>Login</h2>
-          <label for="username">Username:</label>
-          <input type="text" id="username" name="username" required />
-          <label for="password">Password:</label>
-          <input type="password" id="password" name="password" required />
-          <input type="submit" value="Login" />
-        </form>
+      <h2>Add Cat</h2>
+      <div hx-get="/api/cats/form" hx-trigger="load"></div>
+      <h2>Cat list</h2>
 
-        <form id="registerForm" hx-post="api/signup" hx-swap="outerHTML">
-          <h2>Register</h2>
-          <label for="username">Username:</label>
-          <input type="text" id="username" name="username" required />
-          <label for="password">Password:</label>
-          <input type="password" name="password" required />
-          <input type="submit" value="Register" />
-        </form>
-        <fieldset>
-          <label for="switch">
-            <input type="checkbox" id="switch" name="switch" role="switch" />
-            Register
-          </label>
-        </fieldset>
-      </div>
-
-      <!-- make a table with name, color, breed -->
-      <div id="cats">
-        <form id="dogForm" hx-post="/cats" hx-swap="outerHTML">
-          <h2>Add a dog</h2>
-          <label for="name">Name:</label>
-          <input type="text" id="name" name="name" required />
-          <label for="color">Color:</label>
-          <input type="text" id="color" name="color" required />
-          <label for="breed">Breed:</label>
-          <input type="text" id="breed" name="breed" required />
-          <input type="submit" value="Add" />
-        </form>
-
-        <table hx-get="/api/cats" hx-trigger="load" hx-swap="outerHTML">
-          <thead>
-            <tr>
-              <th>Name</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>{name}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <table
+        hx-get="/api/cats"
+        hx-trigger="load, update-cats from:body"
+        hx-swap="innerHTML"
+      ></table>
     </main>
-    <script type="module" src="/src/main.ts"></script>
     <script src="https://unpkg.com/htmx.org@1.9.9"></script>
     <link
       rel="stylesheet"
