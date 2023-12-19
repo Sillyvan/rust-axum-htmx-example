@@ -16,7 +16,7 @@ pub async fn nav(headers: HeaderMap) -> Result<Html<String>, AppError> {
       </ul>
       <ul>
           <li><span>Welcome {}</span></li>
-          <li><a hx-post='/api/signout' >Logout</a></li>
+          <li><a hx-post='/signout' >Logout</a></li>
       </ul>
     </nav>
           "#,
