@@ -39,7 +39,6 @@ pub async fn sign_in(
     let failed_login = Html(format!(
         r#"
         <span>Failed to login</span>
-        <a href="/signin">Try again</a>
         "#
     ))
     .into_response();

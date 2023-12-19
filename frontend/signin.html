@@ -7,7 +7,7 @@
     <title>Vite + TS</title>
   </head>
   <body>
-    <header class="container" hx-boost="true">
+    <header class="container">
       <nav>
         <ul>
           <li><span>Axum + HTMX ❤️</span></li>
@@ -21,13 +21,18 @@
     </header>
     <main class="container">
       <div id="auth" class="auth">
-        <form id="loginForm" hx-post="api/signin">
+        <form
+          id="loginForm"
+          hx-post="api/signin"
+          hx-target="[data-login-error]"
+        >
           <h2>Sign In</h2>
           <label for="username">Username:</label>
           <input type="text" id="username" name="username" autofocus required />
           <label for="password">Password:</label>
           <input type="password" id="password" name="password" required />
           <input type="submit" value="Login" />
+          <div data-login-error></div>
         </form>
       </div>
     </main>
