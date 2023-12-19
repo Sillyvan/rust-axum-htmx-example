@@ -3,12 +3,9 @@ use axum::{
     http::{HeaderMap, HeaderValue, Response},
     Extension, Form,
 };
-use jsonwebtoken::{decode, DecodingKey, Validation};
 use libsql::Connection;
 
-use crate::{errors::AppError, model::Cat::CatFormData};
-
-use super::signin::Claims;
+use crate::{errors::AppError, model::cat::CatFormData, utils::validate_token::validate_token};
 
 pub async fn query_cats_form_get(headers: HeaderMap) -> Result<Response<Body>, AppError> {
     let token: Option<&axum::http::HeaderValue> = headers.get("Cookie");
@@ -35,35 +32,22 @@ pub async fn query_cats_form_post(
     Extension(conn): Extension<Connection>,
     Form(form): Form<CatFormData>,
 ) -> Result<Response<Body>, AppError> {
-    let token: Option<&axum::http::HeaderValue> = headers.get("Cookie");
+    let cookie_header: Option<&axum::http::HeaderValue> = headers.get("Cookie");
+    let token = validate_token(cookie_header);
 
-    let jwt = match token {
-        Some(t) => Some(t.to_str().unwrap().split("=").collect::<Vec<&str>>()[1]),
-        None => None,
-    };
+    let mut res: Response<Body> = Response::new(Body::empty());
 
-    let owner_id = match jwt {
-        Some(t) => Some(
-            decode::<Claims>(
-                t,
-                &DecodingKey::from_secret("secret".as_ref()),
-                &Validation::default(),
+    match token {
+        Some(t) => {
+            conn.execute(
+                "INSERT INTO cat (name, breed, owner_id) VALUES ($1, $2, $3);",
+                &[form.name, form.breed, t.claims.id],
             )
-            .unwrap()
-            .claims
-            .id,
-        ),
+            .await?;
+        }
+        None => return Ok(res),
+    }
 
-        None => return Ok(Response::new(Body::empty())),
-    };
-
-    conn.execute(
-        "INSERT INTO cat (name, breed, owner_id) VALUES ($1, $2, $3);",
-        &[form.name, form.breed, owner_id.unwrap()],
-    )
-    .await?;
-
-    let mut res = Response::new(Body::empty());
     res.headers_mut()
         .insert("HX-Trigger", HeaderValue::from_static("update-cats"));
 

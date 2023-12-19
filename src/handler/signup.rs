@@ -9,7 +9,7 @@ use axum::{
 };
 use libsql::Connection;
 
-use crate::{errors::AppError, model::Owner::OwnerFormData};
+use crate::{errors::AppError, model::owner::OwnerFormData};
 
 trait Hash {
     fn hash(self) -> Result<(String, String, String), AppError>;
