@@ -24,7 +24,7 @@ impl Hash for OwnerFormData {
             .hash_password(&self.password.as_bytes(), &salt)
             .unwrap();
 
-        let password = PasswordHash::from(password_hash).hash.unwrap().to_string();
+        let password = PasswordHash::from(password_hash).to_string();
         Ok((self.username, password, salt.to_string()))
     }
 }
