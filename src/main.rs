@@ -10,12 +10,13 @@ use axum::{
 };
 use errors::AppError;
 use handler::{
+    auth::{sign_in::sign_in, sign_out::sign_out, sign_up::sign_up},
+    cats::{
+        delete::delete_cat,
+        get::{get_cats, get_cats_form},
+        post::post_cat,
+    },
     nav::nav,
-    query_cats::{query_cats, query_cats_delete},
-    query_cats_form::{query_cats_form_get, query_cats_form_post},
-    signin::sign_in,
-    signout::sign_out,
-    signup::sign_up,
 };
 use libsql::Database;
 
@@ -26,13 +27,8 @@ async fn main() -> Result<(), AppError> {
 
     let app = Router::new()
         .route("/api/nav", get(nav))
-        .route(
-            "/api/cats",
-            get(query_cats)
-                .post(query_cats_form_post)
-                .delete(query_cats_delete),
-        )
-        .route("/api/cats/form", get(query_cats_form_get))
+        .route("/api/cats", get(get_cats).post(post_cat).delete(delete_cat))
+        .route("/api/cats/form", get(get_cats_form))
         .route("/api/signup", post(sign_up))
         .route("/api/signin", post(sign_in))
         .route("/api/signout", post(sign_out))

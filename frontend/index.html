@@ -17,10 +17,8 @@
     </header>
 
     <main class="container">
-      <h2>Add Cat</h2>
       <div hx-get="/api/cats/form" hx-trigger="load"></div>
-      <h2>Cat list</h2>
-
+      <h2>Cat List</h2>
       <table
         hx-get="/api/cats"
         hx-trigger="load, update-cats from:body"
