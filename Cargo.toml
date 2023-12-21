@@ -14,4 +14,8 @@ libsql = { git = "https://github.com/tursodatabase/libsql.git" }
 sailfish = "0.8.3"
 serde = "1.0.193"
 tokio = { version = "1.35.0", features = ["full"] }
-tower-http = { version = "0.5.0", features = ["cors"] }
+tower-http = { version = "0.5.0", features = [
+    "cors",
+    "compression-br",
+    "compression-gzip",
+] }

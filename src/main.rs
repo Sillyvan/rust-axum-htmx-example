@@ -19,6 +19,7 @@ use handler::{
     nav::nav,
 };
 use libsql::Database;
+use tower_http::compression::CompressionLayer;
 
 #[tokio::main]
 async fn main() -> Result<(), AppError> {
@@ -32,7 +33,8 @@ async fn main() -> Result<(), AppError> {
         .route("/api/signup", post(sign_up))
         .route("/api/signin", post(sign_in))
         .route("/api/signout", post(sign_out))
-        .layer(Extension(conn));
+        .layer(Extension(conn))
+        .layer(CompressionLayer::new().br(true).gzip(true));
 
     let listener: tokio::net::TcpListener = tokio::net::TcpListener::bind("0.0.0.0:3000").await?;
     axum::serve(listener, app).await?;

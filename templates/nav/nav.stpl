@@ -3,8 +3,9 @@
     <li><span>Axum + HTMX ❤️</span></li>
   </ul>
   <ul>
-    <% if username.is_some() { %>
-        <li><span>Welcome <%= username.unwrap() %></span></li>
+    <% let current_username = username.as_ref(); %>
+    <% if current_username.is_some() { %>
+        <li><span>Welcome <%= current_username.unwrap() %></span></li>
         <li><a hx-post='/api/signout'>Logout</a></li>
     <% } else { %>
         <li><a href="/">Home</a></li>
