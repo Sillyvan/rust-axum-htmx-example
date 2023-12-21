@@ -5,9 +5,10 @@ use axum::body::Body;
 use axum::http::header::SET_COOKIE;
 use axum::http::{HeaderValue, Response};
 use axum::response::IntoResponse;
-use axum::{response::Html, Extension, Form};
+use axum::{Extension, Form};
 use jsonwebtoken::{encode, EncodingKey, Header};
 use libsql::Connection;
+use sailfish::TemplateOnce;
 
 use crate::errors::AppError;
 use crate::model::owner::OwnerFormData;
@@ -32,19 +33,18 @@ const SECRET: &[u8] = b"secret";
 const HX_REDIRECT: &str = "HX-Redirect";
 const HX_REDIRECT_VALUE: HeaderValue = HeaderValue::from_static(REDIRECT_PATH);
 
+#[derive(TemplateOnce)]
+#[template(path = "./auth/sign_in_error.stpl")]
+struct SignInError;
+
 pub async fn sign_in(
     Extension(conn): Extension<Connection>,
     Form(sign_in): Form<OwnerFormData>,
 ) -> Result<Response<Body>, AppError> {
-    let failed_login = Html(format!(
-        r#"
-        <span>Failed to login</span>
-        "#
-    ))
-    .into_response();
-
     let mut stmt: libsql::Statement = conn.prepare(SELECT_OWNER).await?;
     let mut rows = stmt.query(&[sign_in.username.clone()]).await?;
+
+    let failed_login = SignInError {}.render_once()?.into_response();
 
     let row: libsql::Row = match rows.next().unwrap() {
         Some(row) => row,

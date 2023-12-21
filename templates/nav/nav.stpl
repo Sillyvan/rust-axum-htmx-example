@@ -1,0 +1,16 @@
+<nav>
+  <ul>
+    <li><span>Axum + HTMX ❤️</span></li>
+  </ul>
+  <ul>
+    <% if username.is_some() { %>
+        <li><span>Welcome <%= username.unwrap() %></span></li>
+        <li><a hx-post='/api/signout'>Logout</a></li>
+    <% } else { %>
+        <li><a href="/">Home</a></li>
+        <li><a href="/signin">Sign In</a></li>
+        <li><a href="/signup">Sign Up</a></li>
+    <% } %>
+
+  </ul>
+</nav>

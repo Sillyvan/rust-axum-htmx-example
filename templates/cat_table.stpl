@@ -1,0 +1,33 @@
+<thead>
+  <tr>
+    <th>Name</th>
+    <th>Breed</th>
+    <th>Owner</th>
+    <% if username.is_some() { %>
+    <th>Action</th>
+    <% } %>
+  </tr>
+</thead>
+<tbody>
+  <% let current_username = username.as_ref(); %> <% for cat in cats.iter() { %>
+  <tr key="<%= cat.id %>">
+    <td><%= cat.name %></td>
+    <td><%= cat.breed %></td>
+    <td><%= cat.owner_name %></td>
+    <% if let Some(user) = current_username { %>
+    <td>
+      <% if cat.owner_name == *user { %>
+      <a
+        role="button"
+        class="outline"
+        href="/"
+        hx-delete="/api/cats"
+        hx-vals='{"id": <%= cat.id %>}'
+        >Delete</a
+      >
+      <% } %>
+    </td>
+    <% } %>
+  </tr>
+  <% } %>
+</tbody>
