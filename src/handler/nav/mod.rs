@@ -9,8 +9,8 @@ use crate::{errors::AppError, utils::validate_token::validate_token};
 
 #[derive(TemplateOnce)]
 #[template(path = "./nav/nav.stpl")]
-struct SignInError {
-    username: Option<String>,
+struct SignInError<'a> {
+    username: &'a Option<String>,
 }
 
 pub async fn nav(headers: HeaderMap) -> Result<Response<Body>, AppError> {
@@ -18,7 +18,7 @@ pub async fn nav(headers: HeaderMap) -> Result<Response<Body>, AppError> {
     let token = validate_token(cookie_header);
 
     let responses = SignInError {
-        username: token.map(|t| t.claims.sub),
+        username: &token.map(|t| t.claims.sub),
     }
     .render_once()?
     .into_response();
