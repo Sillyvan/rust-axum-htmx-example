@@ -12,6 +12,7 @@ use sailfish::TemplateOnce;
 
 use crate::errors::AppError;
 use crate::model::owner::OwnerFormData;
+use crate::utils::get_secret::get_secret;
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct Claims {
@@ -29,9 +30,9 @@ impl Claims {
 }
 
 const SELECT_OWNER: &str = "SELECT id, password FROM owner WHERE username = ?1";
-const SECRET: &[u8] = b"secret";
-const HX_REDIRECT: &str = "HX-Redirect";
-const HX_REDIRECT_VALUE: HeaderValue = HeaderValue::from_static(REDIRECT_PATH);
+//const SECRET: &[u8] = b"secret";
+const HX_LOCATION: &str = "HX-LOCATION";
+const HX_LOCATION_VALUE: HeaderValue = HeaderValue::from_static("/");
 
 #[derive(TemplateOnce)]
 #[template(path = "./auth/sign_in_error.stpl")]
@@ -41,6 +42,7 @@ pub async fn sign_in(
     Extension(conn): Extension<Connection>,
     Form(sign_in): Form<OwnerFormData>,
 ) -> Result<Response<Body>, AppError> {
+    let secret = get_secret();
     let mut stmt: libsql::Statement = conn.prepare(SELECT_OWNER).await?;
     let mut rows = stmt.query(&[sign_in.username.clone()]).await?;
 
@@ -62,7 +64,7 @@ pub async fn sign_in(
             let token = encode(
                 &Header::default(),
                 &claims,
-                &EncodingKey::from_secret(SECRET),
+                &EncodingKey::from_secret(secret.as_bytes()),
             )?;
 
             let mut response = Response::new(Body::empty());
@@ -75,7 +77,7 @@ pub async fn sign_in(
                 ))
                 .unwrap(),
             );
-            header.insert(HX_REDIRECT, HX_REDIRECT_VALUE);
+            header.insert(HX_LOCATION, HX_LOCATION_VALUE);
 
             Ok(response)
         }
@@ -85,7 +87,6 @@ pub async fn sign_in(
 
 const SESSION_COOKIE: &str = "session";
 const COOKIE_ATTRIBUTES: &str = "Max-Age=86400; HttpOnly";
-const REDIRECT_PATH: &str = "/";
 
 fn verify_password(
     raw_password: &str,

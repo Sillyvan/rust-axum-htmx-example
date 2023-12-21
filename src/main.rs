@@ -23,8 +23,11 @@ use tower_http::compression::CompressionLayer;
 
 #[tokio::main]
 async fn main() -> Result<(), AppError> {
+    dotenv::dotenv().ok();
+
     let db = Database::open("database.db")?;
     let conn = db.connect()?;
+    let server_url = std::env::var("SERVER_URL").expect("SERVER_URL must be set");
 
     let app = Router::new()
         .route("/api/nav", get(nav))
@@ -36,7 +39,9 @@ async fn main() -> Result<(), AppError> {
         .layer(Extension(conn))
         .layer(CompressionLayer::new().br(true).gzip(true));
 
-    let listener: tokio::net::TcpListener = tokio::net::TcpListener::bind("0.0.0.0:3000").await?;
+    println!("Server running at http://{}", server_url);
+    println!("Press Ctrl+C to quit.");
+    let listener: tokio::net::TcpListener = tokio::net::TcpListener::bind(server_url).await?;
     axum::serve(listener, app).await?;
 
     Ok(())
