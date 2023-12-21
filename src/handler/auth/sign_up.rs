@@ -32,8 +32,8 @@ impl Hash for OwnerFormData {
 const INSERT_OWNER: &str =
     "INSERT INTO owner (username, password, salt) VALUES (lower(?1), ?2, ?3)";
 
-const HX_REDIRECT: &str = "HX-Redirect";
-const HX_REDIRECT_VALUE: HeaderValue = HeaderValue::from_static("/signin");
+const HX_LOCATION: &str = "HX-LOCATION";
+const HX_LOCATION_VALUE: HeaderValue = HeaderValue::from_static("/signin");
 const USERNAME_TAKEN: &str = "Username already taken";
 
 pub async fn sign_up(
@@ -49,7 +49,7 @@ pub async fn sign_up(
     match result {
         Ok(_) => {
             let mut res = Response::new(Body::empty());
-            res.headers_mut().insert(HX_REDIRECT, HX_REDIRECT_VALUE);
+            res.headers_mut().insert(HX_LOCATION, HX_LOCATION_VALUE);
             return Ok(res);
         }
         Err(_) => return Ok(Response::new(Body::from(USERNAME_TAKEN))),
