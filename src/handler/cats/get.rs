@@ -1,15 +1,21 @@
 use axum::{
     body::Body,
-    http::{HeaderMap, Response},
-    response::IntoResponse,
+    http::HeaderMap,
+    response::{IntoResponse, Response},
     Extension,
 };
 use libsql::Connection;
 
-use crate::{
-    errors::AppError,
-    utils::{generate_table::generate_table, validate_token::validate_token},
-};
+use crate::{errors::AppError, model::cat::Cat, utils::validate_token::validate_token};
+
+use sailfish::TemplateOnce;
+
+#[derive(TemplateOnce)]
+#[template(path = "./cat_table.stpl")]
+struct CatTable<'a> {
+    username: &'a Option<String>,
+    cats: &'a Vec<Cat>,
+}
 
 pub async fn get_cats(
     headers: HeaderMap,
@@ -33,30 +39,33 @@ pub async fn get_cats(
         )
         .await?;
 
-    let res = generate_table(&mut rows, token.map(|t| t.claims.sub))
-        .await?
-        .into_response();
+    let mut cats = vec![];
+    while let Some(current_row) = rows.next()? {
+        let cat: Cat = libsql::de::from_row::<Cat>(&current_row)?;
+        cats.push(cat);
+    }
 
-    Ok(res)
+    let response = CatTable {
+        username: &token.map(|t| t.claims.sub),
+        cats: &cats,
+    }
+    .render_once()?
+    .into_response();
+
+    Ok(response)
 }
+
+#[derive(TemplateOnce)]
+#[template(path = "./auth/sign_in.stpl")]
+struct SignInTemplate;
 
 pub async fn get_cats_form(headers: HeaderMap) -> Result<Response<Body>, AppError> {
     let token: Option<&axum::http::HeaderValue> = headers.get("Cookie");
 
-    let signed_in_response = format!(
-        r#"
-        <form hx-post='/api/cats' hx-swap='none' hx-on::after-request="this.reset()">
-            <h2>Add Cat</h2>
-            <input type="text" name="name" placeholder="name" />
-            <input type="text" name="breed" placeholder="breed" />
-            <input type="submit" value="Add cat" />
-        </form>
-        
-        "#,
-    );
+    let signed_in_response2 = SignInTemplate {}.render_once()?.into_response();
 
     return match token {
-        Some(_t) => Ok(Response::new(Body::from(signed_in_response))),
+        Some(_t) => Ok(signed_in_response2),
         None => Ok(Response::new(Body::empty())),
     };
 }

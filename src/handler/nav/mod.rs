@@ -1,45 +1,27 @@
-use axum::{http::HeaderMap, response::Html};
+use axum::{
+    body::Body,
+    http::HeaderMap,
+    response::{IntoResponse, Response},
+};
+use sailfish::TemplateOnce;
 
 use crate::{errors::AppError, utils::validate_token::validate_token};
 
-pub async fn nav(headers: HeaderMap) -> Result<Html<String>, AppError> {
+#[derive(TemplateOnce)]
+#[template(path = "./nav/nav.stpl")]
+struct SignInError {
+    username: Option<String>,
+}
+
+pub async fn nav(headers: HeaderMap) -> Result<Response<Body>, AppError> {
     let cookie_header: Option<&axum::http::HeaderValue> = headers.get("Cookie");
     let token = validate_token(cookie_header);
 
-    let response = match token {
-        Some(t) => {
-            format!(
-                r#"
-    <nav>
-      <ul>
-        <li><span>Axum + HTMX ❤️</span></li>
-      </ul>
-      <ul>
-          <li><span>Welcome {}</span></li>
-          <li><a hx-post='/signout' >Logout</a></li>
-      </ul>
-    </nav>
-          "#,
-                t.claims.sub
-            )
-        }
-        None => {
-            format!(
-                r#"
-    <nav>
-      <ul>
-        <li><span>Axum + HTMX ❤️</span></li>
-      </ul>
-      <ul>
-        <li><a href="/">Home</a></li>
-        <li><a href="/signin">Sign In</a></li>
-        <li><a href="/signup">Sign Up</a></li>
-      </ul>
-    </nav>
-          "#
-            )
-        }
-    };
+    let responses = SignInError {
+        username: token.map(|t| t.claims.sub),
+    }
+    .render_once()?
+    .into_response();
 
-    Ok(Html(response))
+    Ok(responses)
 }
