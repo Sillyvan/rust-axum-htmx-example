@@ -1,7 +1,10 @@
 mod errors;
 mod handler;
 mod model;
+mod test;
 mod utils;
+
+use std::process::Command;
 
 use anyhow::Result;
 use axum::{
@@ -25,7 +28,21 @@ use tower_http::compression::CompressionLayer;
 async fn main() -> Result<(), AppError> {
     dotenv::dotenv().ok();
 
-    let db = Database::open("database.db")?;
+    //get run argument
+    let args: Vec<String> = std::env::args().collect();
+
+    let db = match args.contains(&String::from("--test")) {
+        true => {
+            println!("Running test enviroment");
+            match Command::new("sh").arg("./create_test_db.sh").output() {
+                Ok(_) => println!("Test db created"),
+                Err(e) => println!("Error creating test db: {}", e),
+            }
+            Database::open("test.db")?
+        }
+        false => Database::open("database.db")?,
+    };
+
     let conn = db.connect()?;
     let server_url = std::env::var("SERVER_URL").expect("SERVER_URL must be set");
 

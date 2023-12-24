@@ -5,6 +5,7 @@ use argon2::{
 use axum::{
     body::Body,
     http::{HeaderValue, Response},
+    response::IntoResponse,
     Extension, Form,
 };
 use libsql::Connection;
@@ -34,7 +35,7 @@ const INSERT_OWNER: &str =
 
 const HX_LOCATION: &str = "HX-LOCATION";
 const HX_LOCATION_VALUE: HeaderValue = HeaderValue::from_static("/signin");
-const USERNAME_TAKEN: &str = "Username already taken";
+const USERNAME_TAKEN: &str = "<div id='signup-error'>Username already taken</div>";
 
 pub async fn sign_up(
     Extension(conn): Extension<Connection>,
@@ -52,6 +53,6 @@ pub async fn sign_up(
             res.headers_mut().insert(HX_LOCATION, HX_LOCATION_VALUE);
             return Ok(res);
         }
-        Err(_) => return Ok(Response::new(Body::from(USERNAME_TAKEN))),
+        Err(_) => Ok(USERNAME_TAKEN.into_response()),
     }
 }

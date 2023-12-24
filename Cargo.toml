@@ -10,8 +10,10 @@ anyhow = "1.0.75"
 argon2 = "0.5.2"
 axum = "0.7.2"
 dotenv = "0.15.0"
+fantoccini = "0.19.3"
 jsonwebtoken = "9.2.0"
 libsql = { git = "https://github.com/tursodatabase/libsql.git" }
+rand = "0.8.5"
 sailfish = "0.8.3"
 serde = "1.0.193"
 tokio = { version = "1.35.0", features = ["full"] }
@@ -20,3 +22,4 @@ tower-http = { version = "0.5.0", features = [
     "compression-br",
     "compression-gzip",
 ] }
+url = "2.5.0"
