@@ -8,7 +8,6 @@ use axum::response::IntoResponse;
 use axum::{Extension, Form};
 use jsonwebtoken::{encode, EncodingKey, Header};
 use libsql::Connection;
-use sailfish::TemplateOnce;
 
 use crate::errors::AppError;
 use crate::model::owner::OwnerFormData;
@@ -30,13 +29,9 @@ impl Claims {
 }
 
 const SELECT_OWNER: &str = "SELECT id, password FROM owner WHERE username = ?1";
-//const SECRET: &[u8] = b"secret";
 const HX_LOCATION: &str = "HX-LOCATION";
 const HX_LOCATION_VALUE: HeaderValue = HeaderValue::from_static("/");
-
-#[derive(TemplateOnce)]
-#[template(path = "./auth/sign_in_error.stpl")]
-struct SignInError;
+const SIGN_IN_ERROR: &str = "<div id='signin-error'>Invalid username or password</div>";
 
 pub async fn sign_in(
     Extension(conn): Extension<Connection>,
@@ -46,12 +41,10 @@ pub async fn sign_in(
     let mut stmt: libsql::Statement = conn.prepare(SELECT_OWNER).await?;
     let mut rows = stmt.query(&[sign_in.username.clone()]).await?;
 
-    let failed_login = SignInError {}.render_once()?.into_response();
-
     let row: libsql::Row = match rows.next().unwrap() {
         Some(row) => row,
         None => {
-            return Ok(failed_login);
+            return Ok(SIGN_IN_ERROR.into_response());
         }
     };
 
@@ -81,14 +74,14 @@ pub async fn sign_in(
 
             Ok(response)
         }
-        Err(_) => Ok(failed_login),
+        Err(_) => Ok(SIGN_IN_ERROR.into_response()),
     }
 }
 
 const SESSION_COOKIE: &str = "session";
 const COOKIE_ATTRIBUTES: &str = "Max-Age=86400; HttpOnly";
 
-fn verify_password(
+pub fn verify_password(
     raw_password: &str,
     db_password: &str,
 ) -> Result<(), argon2::password_hash::Error> {

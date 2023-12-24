@@ -12,9 +12,9 @@ use sailfish::TemplateOnce;
 
 #[derive(TemplateOnce)]
 #[template(path = "./cat_table.stpl")]
-struct CatTable<'a> {
-    username: &'a Option<String>,
-    cats: &'a Vec<Cat>,
+pub struct CatTable<'a> {
+    pub username: &'a Option<String>,
+    pub cats: &'a Vec<Cat>,
 }
 
 pub async fn get_cats(
@@ -56,13 +56,13 @@ pub async fn get_cats(
 }
 
 #[derive(TemplateOnce)]
-#[template(path = "./auth/sign_in.stpl")]
-struct SignInTemplate;
+#[template(path = "./cat_add_form.stpl")]
+struct CatAddForm;
 
 pub async fn get_cats_form(headers: HeaderMap) -> Result<Response<Body>, AppError> {
     let token: Option<&axum::http::HeaderValue> = headers.get("Cookie");
 
-    let signed_in_response2 = SignInTemplate {}.render_once()?.into_response();
+    let signed_in_response2 = CatAddForm {}.render_once()?.into_response();
 
     return match token {
         Some(_t) => Ok(signed_in_response2),

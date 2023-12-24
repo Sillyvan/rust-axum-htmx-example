@@ -1,0 +1,6 @@
+<form hx-post='/api/cats' hx-swap='none' hx-on::after-request="this.reset()" id='add-cat-form'>
+    <h2>Add Cat</h2>
+    <input type="text" name="name" placeholder="name" id='cat-name'/>
+    <input type="text" name="breed" placeholder="breed" id='breed'/>
+    <input type="submit" value="Add cat" />
+</form>
