@@ -81,19 +81,6 @@ async fn test_cat_form_visable() -> Result<(), Box<dyn std::error::Error>> {
     Ok(client.close().await?)
 }
 
-/* #[tokio::test]
-async fn test_log_out() -> Result<(), Box<dyn std::error::Error>> {
-    let mut client = fantoccini::ClientBuilder::native()
-        .connect(WEBDRIVER_URL)
-        .await?;
-    client.goto(&format!("{}/", BASE_URL)).await?;
-    e2e_sign_in::e2e_sign_in(&mut client, MOCK_LOGIN).await?;
-    e2e_sign_out::e2e_sign_out(&mut client).await?;
-
-    Ok(client.close().await?)
-} */
-
-// login and add a cat. check if the cat is added
 #[tokio::test]
 async fn test_add_cat() -> Result<(), Box<dyn std::error::Error>> {
     let mut client = fantoccini::ClientBuilder::native()
@@ -106,20 +93,6 @@ async fn test_add_cat() -> Result<(), Box<dyn std::error::Error>> {
         .for_url(url::Url::parse(&format!("{}/", BASE_URL)).unwrap())
         .await?;
     e2e_add_cat::e2e_add_cat(&mut client).await?;
-
-    Ok(client.close().await?)
-}
-
-// delete a cat and check if the cat is deleted
-#[tokio::test]
-
-async fn test_delete_cat() -> Result<(), Box<dyn std::error::Error>> {
-    let mut client = fantoccini::ClientBuilder::native()
-        .connect(WEBDRIVER_URL)
-        .await?;
-    client.goto(&format!("{}/", BASE_URL)).await?;
-    e2e_sign_in::e2e_sign_in(&mut client, MOCK_LOGIN).await?;
-    //e2e delete cat
 
     Ok(client.close().await?)
 }
